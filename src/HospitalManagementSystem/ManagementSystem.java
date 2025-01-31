@@ -1,5 +1,6 @@
 package HospitalManagementSystem;
 
+
 import java.util.*;
 import java.text.*;
 
@@ -179,28 +180,40 @@ public class ManagementSystem {
         System.out.print("Enter Patient ID for appointment: ");
         String patientId = scanner.nextLine();
         boolean patientExists = false;
+        Patient selectedPatient = null;
 
         for (Patient p : patients) {
             if (p.id.equals(patientId)) {
                 patientExists = true;
+                selectedPatient = p;
                 break;
             }
         }
 
         if (patientExists) {
-            System.out.println("Select a doctor for appointment:");
-            System.out.println("1) Dr. Taylor");
-            System.out.println("2) Dr. John");
-            System.out.println("0) Default Doctor");
+            String ailment = selectedPatient.ailment;
+            System.out.println("Select a doctor for appointment based on ailment: ");
+            List<String> availableDoctors = doctorSpecializations.get(ailment);
 
+            // If no doctors are available, assign default doctor names
+            if (availableDoctors == null || availableDoctors.isEmpty()) {
+                System.out.println("No doctors available for the ailment: " + ailment);
+                availableDoctors = Arrays.asList("Dr. smith", "Dr. john 2");
+            }
+
+            // Display the doctors (available or default)
+            for (int i = 0; i < availableDoctors.size(); i++) {
+                System.out.println((i + 1) + ") " + availableDoctors.get(i));
+            }
+
+            // Select doctor
+            System.out.println("0) Default Doctor");
             int doctorChoice = scanner.nextInt();
-            scanner.nextLine(); // Consume the newline character
+            scanner.nextLine(); // Consume newline
 
             String doctor = "Dr. Default";
-            if (doctorChoice == 1) {
-                doctor = "Dr. Taylor";
-            } else if (doctorChoice == 2) {
-                doctor = "Dr. John";
+            if (doctorChoice > 0 && doctorChoice <= availableDoctors.size()) {
+                doctor = availableDoctors.get(doctorChoice - 1);
             }
 
             // Validate date
@@ -208,8 +221,23 @@ public class ManagementSystem {
             String date = scanner.nextLine();
 
             if (validateDate(date)) {
-                // Set the default time for the appointment (e.g., 10:00 AM)
-                String defaultTime = "10:00 AM";
+                // Dynamically set the time based on the day of the week
+                String defaultTime = "10:00 AM"; 
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date appointmentDate;
+                try {
+                    appointmentDate = sdf.parse(date);
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(appointmentDate);
+                    int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+
+                    // If it's Saturday or Sunday, set the time to 11:00 AM
+                    if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
+                        defaultTime = "11:00 AM";
+                    }
+                } catch (ParseException e) {
+                    System.out.println("Invalid date format.");
+                }
 
                 // Schedule the appointment
                 System.out.println("\nAppointment successfully scheduled!");
@@ -224,6 +252,7 @@ public class ManagementSystem {
             System.out.println("Patient not found with ID " + patientId);
         }
     }
+
 
     public static void generateBill(Scanner scanner) {
         System.out.print("Enter Patient ID for bill: ");
@@ -362,6 +391,9 @@ public class ManagementSystem {
         }
     }
 }
+
+
+
 
 
 
